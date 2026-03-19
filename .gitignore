@@ -1,0 +1,62 @@
+# =========================
+# FLUTTER / DART
+# =========================
+.dart_tool/
+.packages
+.pub/
+build/
+flutter_export_environment.sh
+
+# =========================
+# ANDROID
+# =========================
+android/.gradle/
+android/app/build/
+android/local.properties
+*.keystore
+*.jks
+
+# =========================
+# IOS
+# =========================
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/.last_build_id
+
+# =========================
+# WEB
+# =========================
+build/web/
+
+# =========================
+# DESKTOP
+# =========================
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+macos/Flutter/ephemeral/
+
+# =========================
+# IDE / EDITOR
+# =========================
+.idea/
+.vscode/
+*.iml
+
+# =========================
+# LOG & TEMP
+# =========================
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# =========================
+# TEST / COVERAGE
+# =========================
+coverage/
+
+# =========================
+# GENERATED FILES
+# =========================
+pubspec.lock
