@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 // ─── MODEL: USER
 class UserAccount {
-  final String name;
-  final String email;
-  final String password;
+  String name;
+  String email;
+  String password;
   UserAccount({
     required this.name,
     required this.email,
@@ -59,6 +59,30 @@ class AppState extends ChangeNotifier {
   List<UserAccount> accounts = [];
   List<DonationRecord> donations = [];
   int currentTabIndex = 0;
+
+  // ─── NOTIFICATION PREFERENCES
+  bool notifDonasi = true;
+  bool notifKampanye = true;
+  bool notifBerita = false;
+  bool notifPromo = false;
+
+  void setNotif(String key, bool val) {
+    switch (key) {
+      case 'donasi':
+        notifDonasi = val;
+        break;
+      case 'kampanye':
+        notifKampanye = val;
+        break;
+      case 'berita':
+        notifBerita = val;
+        break;
+      case 'promo':
+        notifPromo = val;
+        break;
+    }
+    notifyListeners();
+  }
 
   // ─── CAMPAIGN DATA
   final List<Campaign> campaigns = [
@@ -147,6 +171,42 @@ class AppState extends ChangeNotifier {
   void logout() {
     currentUser = null;
     notifyListeners();
+  }
+
+  // ─── EDIT PROFILE
+  bool editProfile(String newName, String newEmail) {
+    if (currentUser == null) return false;
+    // cek email sudah dipakai user lain
+    if (newEmail != currentUser!.email &&
+        accounts.any((a) => a.email == newEmail)) {
+      return false;
+    }
+    // update donations yang terkait
+    final oldEmail = currentUser!.email;
+    for (final d in donations) {
+      if (d.userEmail == oldEmail) {
+        donations[donations.indexOf(d)] = DonationRecord(
+          userEmail: newEmail,
+          campaign: d.campaign,
+          amount: d.amount,
+          date: d.date,
+          img: d.img,
+        );
+      }
+    }
+    currentUser!.name = newName;
+    currentUser!.email = newEmail;
+    notifyListeners();
+    return true;
+  }
+
+  // ─── CHANGE PASSWORD
+  bool changePassword(String oldPass, String newPass) {
+    if (currentUser == null) return false;
+    if (currentUser!.password != oldPass) return false;
+    currentUser!.password = newPass;
+    notifyListeners();
+    return true;
   }
 
   // ─── DONATIONS

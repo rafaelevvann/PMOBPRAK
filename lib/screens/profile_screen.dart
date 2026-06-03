@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/app_state.dart';
 import '../widgets/auth_modal.dart';
+import 'edit_profile_screen.dart';
+import 'security_screen.dart';
+import 'notification_screen.dart';
+import 'help_screen.dart';
 
 const kRed = Color(0xFFE8003D);
 
@@ -198,20 +202,37 @@ class ProfileScreen extends StatelessWidget {
                 Icons.person_outline,
                 'Edit Profil',
                 'Ubah nama dan email',
-                () {},
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                ),
               ),
-              _menuItem(Icons.lock_outline, 'Keamanan', 'Ubah password', () {}),
+              _menuItem(
+                Icons.lock_outline,
+                'Keamanan',
+                'Ubah password',
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SecurityScreen()),
+                ),
+              ),
               _menuItem(
                 Icons.notifications_none,
                 'Notifikasi',
                 'Atur preferensi notifikasi',
-                () {},
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                ),
               ),
               _menuItem(
                 Icons.help_outline,
                 'Bantuan',
                 'FAQ dan hubungi kami',
-                () {},
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HelpScreen()),
+                ),
               ),
               const SizedBox(height: 8),
 
