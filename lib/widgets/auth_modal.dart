@@ -35,6 +35,9 @@ class _AuthModalState extends State<AuthModal> {
   final _regPass = TextEditingController();
   final _regPass2 = TextEditingController();
 
+  // Role selection
+  UserRole _selectedRole = UserRole.donatur;
+
   String? _errorMsg;
 
   @override
@@ -66,9 +69,12 @@ class _AuthModalState extends State<AuthModal> {
       return;
     }
     Navigator.pop(context);
+    final user = context.read<AppState>().currentUser!;
+    final roleLabel =
+        user.role == UserRole.fundraiser ? 'Fundraiser' : 'Donatur';
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Selamat datang kembali! 👋'),
+      SnackBar(
+        content: Text('Selamat datang kembali, $roleLabel! 👋'),
         backgroundColor: Colors.green,
       ),
     );
@@ -96,15 +102,19 @@ class _AuthModalState extends State<AuthModal> {
       setState(() => _errorMsg = 'Password tidak cocok');
       return;
     }
-    final ok = context.read<AppState>().register(name, email, pass);
+    final ok = context
+        .read<AppState>()
+        .register(name, email, pass, role: _selectedRole);
     if (!ok) {
       setState(() => _errorMsg = 'Email sudah terdaftar');
       return;
     }
     Navigator.pop(context);
+    final roleLabel =
+        _selectedRole == UserRole.fundraiser ? 'Fundraiser' : 'Donatur';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Selamat datang, $name! 🎉'),
+        content: Text('Selamat datang, $name! 🎉 ($roleLabel)'),
         backgroundColor: Colors.green,
       ),
     );
@@ -202,6 +212,9 @@ class _AuthModalState extends State<AuthModal> {
               const SizedBox(height: 20),
               _submitBtn('Masuk', _doLogin),
             ] else ...[
+              // ─── ROLE SELECTOR
+              _buildRoleSelector(),
+              const SizedBox(height: 16),
               _inputField('Nama Lengkap', _regName, TextInputType.name),
               const SizedBox(height: 12),
               _inputField('Email', _regEmail, TextInputType.emailAddress),
@@ -224,6 +237,112 @@ class _AuthModalState extends State<AuthModal> {
             ],
             const SizedBox(height: 12),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ─── ROLE SELECTOR WIDGET
+  Widget _buildRoleSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Daftar sebagai',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF374151),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3F4F6),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              _roleBtn(
+                icon: Icons.favorite_outline,
+                label: 'Donatur',
+                subtitle: 'Berdonasi ke kampanye',
+                isActive: _selectedRole == UserRole.donatur,
+                onTap: () => setState(() => _selectedRole = UserRole.donatur),
+              ),
+              const SizedBox(width: 4),
+              _roleBtn(
+                icon: Icons.campaign_outlined,
+                label: 'Fundraiser',
+                subtitle: 'Buat kampanye donasi',
+                isActive: _selectedRole == UserRole.fundraiser,
+                onTap: () =>
+                    setState(() => _selectedRole = UserRole.fundraiser),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _roleBtn({
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            color: isActive ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: isActive
+                ? Border.all(color: kRed.withValues(alpha: 0.3), width: 1.5)
+                : null,
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: kRed.withValues(alpha: 0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : [],
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                size: 22,
+                color: isActive ? kRed : Colors.grey[500],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: isActive ? kRed : Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isActive ? kRed.withValues(alpha: 0.7) : Colors.grey[400],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );

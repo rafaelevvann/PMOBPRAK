@@ -6,6 +6,7 @@ import 'edit_profile_screen.dart';
 import 'security_screen.dart';
 import 'notification_screen.dart';
 import 'help_screen.dart';
+import 'my_campaigns_screen.dart';
 
 const kRed = Color(0xFFE8003D);
 
@@ -169,6 +170,22 @@ class ProfileScreen extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.8),
                 ),
               ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  state.isFundraiser ? '🎯 Fundraiser' : '💝 Donatur',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -190,12 +207,23 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             children: [
               const SizedBox(height: 8),
+              if (state.isFundraiser)
+                _menuItem(
+                  Icons.campaign_outlined,
+                  'Kampanye Saya',
+                  'Kelola kampanye donasi Anda',
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const MyCampaignsScreen()),
+                  ),
+                ),
               _menuItem(
                 Icons.favorite_border,
                 'Riwayat Donasi',
                 'Lihat semua donasi Anda',
                 () {
-                  context.read<AppState>().setTab(2);
+                  context.read<AppState>().setTab(state.isFundraiser ? 3 : 2);
                 },
               ),
               _menuItem(

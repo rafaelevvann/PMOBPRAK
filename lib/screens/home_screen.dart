@@ -4,6 +4,7 @@ import '../models/app_state.dart';
 import '../widgets/campaign_card.dart';
 import '../widgets/auth_modal.dart';
 import '../widgets/donate_modal.dart';
+import 'create_campaign_screen.dart';
 
 const kRed = Color(0xFFE8003D);
 
@@ -217,17 +218,40 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: Colors.white24,
-            child: Text(
-              state.currentUser!.name[0].toUpperCase(),
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: Colors.white24,
+                child: Text(
+                  state.currentUser!.name[0].toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
               ),
-            ),
+              if (state.isFundraiser) ...[
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'FUNDRAISER',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 10),
           Text(
@@ -423,6 +447,20 @@ class HomeScreen extends StatelessWidget {
                   'Dampak Kami',
                   () => Navigator.pop(context),
                 ),
+                if (state.isFundraiser)
+                  _sidebarItem(
+                    context,
+                    Icons.add_circle_outline,
+                    'Buat Kampanye',
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const CreateCampaignScreen()),
+                      );
+                    },
+                  ),
                 _sidebarItem(
                   context,
                   state.currentUser != null ? Icons.logout : Icons.login,

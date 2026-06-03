@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 
+// ─── ENUM: USER ROLE
+enum UserRole { donatur, fundraiser }
+
 // ─── MODEL: USER
 class UserAccount {
   String name;
   String email;
   String password;
+  UserRole role;
   UserAccount({
     required this.name,
     required this.email,
     required this.password,
+    this.role = UserRole.donatur,
   });
 }
 
@@ -38,6 +43,8 @@ class Campaign {
   final int donors;
   final int daysLeft;
   final String imageUrl;
+  final String creatorEmail;
+  final String location;
 
   Campaign({
     required this.title,
@@ -48,6 +55,8 @@ class Campaign {
     required this.donors,
     required this.daysLeft,
     required this.imageUrl,
+    this.creatorEmail = '',
+    this.location = '',
   });
 
   double get progressPercent => collected / target;
@@ -148,6 +157,14 @@ class AppState extends ChangeNotifier {
     ),
   ];
 
+  // ─── ROLE HELPERS
+  bool get isFundraiser =>
+      currentUser != null && currentUser!.role == UserRole.fundraiser;
+
+  List<Campaign> get myCampaigns => campaigns
+      .where((c) => c.creatorEmail == currentUser?.email)
+      .toList();
+
   // ─── AUTH
   bool login(String email, String password) {
     final acc = accounts
@@ -159,9 +176,11 @@ class AppState extends ChangeNotifier {
     return true;
   }
 
-  bool register(String name, String email, String password) {
+  bool register(String name, String email, String password,
+      {UserRole role = UserRole.donatur}) {
     if (accounts.any((a) => a.email == email)) return false;
-    final acc = UserAccount(name: name, email: email, password: password);
+    final acc =
+        UserAccount(name: name, email: email, password: password, role: role);
     accounts.add(acc);
     currentUser = acc;
     notifyListeners();
@@ -170,6 +189,7 @@ class AppState extends ChangeNotifier {
 
   void logout() {
     currentUser = null;
+    currentTabIndex = 0;
     notifyListeners();
   }
 
@@ -235,6 +255,34 @@ class AppState extends ChangeNotifier {
       .toList();
 
   int get totalDonated => myDonations.fold(0, (sum, d) => sum + d.amount);
+
+  // ─── CAMPAIGNS (FUNDRAISER)
+  void addCampaign({
+    required String title,
+    required String category,
+    required String description,
+    required int target,
+    required int daysLeft,
+    required String imageUrl,
+    String location = '',
+  }) {
+    if (currentUser == null) return;
+    campaigns.add(
+      Campaign(
+        title: title,
+        category: category,
+        description: description,
+        collected: 0,
+        target: target,
+        donors: 0,
+        daysLeft: daysLeft,
+        imageUrl: imageUrl,
+        creatorEmail: currentUser!.email,
+        location: location,
+      ),
+    );
+    notifyListeners();
+  }
 
   // ─── HELPERS
   void setTab(int index) {
