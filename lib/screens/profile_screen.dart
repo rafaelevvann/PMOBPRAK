@@ -10,6 +10,140 @@ import 'my_campaigns_screen.dart';
 
 const kRed = Color(0xFFE8003D);
 
+void _showSwitchRoleDialog(BuildContext context, AppState state) {
+  final targetRole =
+      state.isFundraiser ? 'Donatur' : 'Fundraiser';
+  final targetIcon =
+      state.isFundraiser ? Icons.favorite_outline : Icons.campaign_outlined;
+  final targetEmoji = state.isFundraiser ? '💝' : '🎯';
+
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF2F2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.swap_horiz, color: kRed, size: 22),
+          ),
+          const SizedBox(width: 12),
+          const Text(
+            'Pindah Akun',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(targetIcon, color: kRed, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$targetEmoji $targetRole',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        state.isFundraiser
+                            ? 'Berdonasi ke kampanye orang lain'
+                            : 'Buat dan kelola kampanye donasi',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Anda akan beralih dari mode ${state.isFundraiser ? "Fundraiser" : "Donatur"} ke mode $targetRole. Data Anda tetap tersimpan.',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[600],
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(
+            'Batal',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: kRed,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            elevation: 0,
+          ),
+          onPressed: () {
+            state.switchRole();
+            Navigator.pop(ctx);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content:
+                    Text('Berhasil beralih ke mode $targetRole! $targetEmoji'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          },
+          child: const Text(
+            'Ya, Pindah',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -178,7 +312,11 @@ class ProfileScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  state.isFundraiser ? '🎯 Fundraiser' : '💝 Donatur',
+                  state.isAdmin
+                      ? '🛡️ Admin'
+                      : state.isFundraiser
+                          ? '🎯 Fundraiser'
+                          : '💝 Donatur',
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -207,6 +345,14 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             children: [
               const SizedBox(height: 8),
+              _menuItem(
+                Icons.swap_horiz,
+                'Pindah Akun',
+                state.isFundraiser
+                    ? 'Beralih ke mode Donatur'
+                    : 'Beralih ke mode Fundraiser',
+                () => _showSwitchRoleDialog(context, state),
+              ),
               if (state.isFundraiser)
                 _menuItem(
                   Icons.campaign_outlined,

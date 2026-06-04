@@ -6,6 +6,9 @@ import 'screens/explore_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/my_campaigns_screen.dart';
+import 'screens/admin_dashboard_screen.dart';
+import 'screens/admin_users_screen.dart';
+import 'screens/admin_campaigns_screen.dart';
 
 void main() {
   runApp(
@@ -40,9 +43,54 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final isAdmin = state.isAdmin;
     final isFundraiser = state.isFundraiser;
 
-    // Dynamic screens based on role
+    // ─── ADMIN NAVIGATION
+    if (isAdmin) {
+      final adminScreens = <Widget>[
+        const AdminDashboardScreen(),
+        const AdminUsersScreen(),
+        const AdminCampaignsScreen(),
+        const ProfileScreen(),
+      ];
+
+      final adminNavItems = <BottomNavigationBarItem>[
+        const BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard), label: 'Dashboard'),
+        const BottomNavigationBarItem(
+            icon: Icon(Icons.people_outline), label: 'Pengguna'),
+        const BottomNavigationBarItem(
+            icon: Icon(Icons.campaign_outlined), label: 'Kampanye'),
+        const BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline), label: 'Profil'),
+      ];
+
+      final maxIndex = adminScreens.length - 1;
+      final safeIndex = state.currentTabIndex.clamp(0, maxIndex);
+
+      return Scaffold(
+        body: IndexedStack(index: safeIndex, children: adminScreens),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: safeIndex,
+          onTap: (i) => context.read<AppState>().setTab(i),
+          selectedItemColor: const Color(0xFF1F2937),
+          unselectedItemColor: Colors.grey,
+          type: BottomNavigationBarType.fixed,
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 10.5,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 10.5,
+          ),
+          items: adminNavItems,
+        ),
+      );
+    }
+
+    // ─── DONATUR / FUNDRAISER NAVIGATION
     final screens = <Widget>[
       const HomeScreen(),
       const ExploreScreen(),
@@ -51,7 +99,6 @@ class MainShell extends StatelessWidget {
       const ProfileScreen(),
     ];
 
-    // Dynamic nav items based on role
     final navItems = <BottomNavigationBarItem>[
       const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
       const BottomNavigationBarItem(
@@ -69,7 +116,6 @@ class MainShell extends StatelessWidget {
       ),
     ];
 
-    // Clamp tab index to avoid overflow
     final maxIndex = screens.length - 1;
     final safeIndex = state.currentTabIndex.clamp(0, maxIndex);
 
@@ -94,3 +140,4 @@ class MainShell extends StatelessWidget {
     );
   }
 }
+

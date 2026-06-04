@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/app_state.dart';
 
@@ -23,6 +24,34 @@ class CampaignCard extends StatelessWidget {
       count++;
     }
     return 'Rp ${buffer.toString().split('').reversed.join()}';
+  }
+
+  Widget _buildCampaignImage(String url, {double height = 190}) {
+    final isFile = !url.startsWith('http') && File(url).existsSync();
+    final errorWidget = Container(
+      height: height,
+      color: Colors.grey[200],
+      child: const Center(
+        child: Icon(Icons.image, size: 40, color: Colors.grey),
+      ),
+    );
+
+    if (isFile) {
+      return Image.file(
+        File(url),
+        height: height,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => errorWidget,
+      );
+    }
+    return Image.network(
+      url,
+      height: height,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => errorWidget,
+    );
   }
 
   @override
@@ -52,20 +81,9 @@ class CampaignCard extends StatelessWidget {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(14),
                 ),
-                child: Image.network(
+                child: _buildCampaignImage(
                   campaign.imageUrl,
                   height: 190,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 190,
-                    color: Colors.grey[200],
-                    child: const Icon(
-                      Icons.image,
-                      size: 40,
-                      color: Colors.grey,
-                    ),
-                  ),
                 ),
               ),
               Positioned(

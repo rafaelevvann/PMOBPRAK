@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 // ─── ENUM: USER ROLE
-enum UserRole { donatur, fundraiser }
+enum UserRole { donatur, fundraiser, admin }
 
 // ─── MODEL: USER
 class UserAccount {
@@ -161,9 +161,60 @@ class AppState extends ChangeNotifier {
   bool get isFundraiser =>
       currentUser != null && currentUser!.role == UserRole.fundraiser;
 
+  bool get isAdmin =>
+      currentUser != null && currentUser!.role == UserRole.admin;
+
+  void switchRole() {
+    if (currentUser == null) return;
+    currentUser!.role = currentUser!.role == UserRole.donatur
+        ? UserRole.fundraiser
+        : UserRole.donatur;
+    // Reset tab index to avoid overflow when nav items change
+    currentTabIndex = 0;
+    notifyListeners();
+  }
+
   List<Campaign> get myCampaigns => campaigns
       .where((c) => c.creatorEmail == currentUser?.email)
       .toList();
+
+  // ─── ADMIN: GLOBAL STATS
+  int get totalUsers => accounts.length;
+  int get totalDonatur => accounts.where((a) => a.role == UserRole.donatur).length;
+  int get totalFundraiser => accounts.where((a) => a.role == UserRole.fundraiser).length;
+  int get totalCampaigns => campaigns.length;
+  int get totalAllDonations => donations.fold(0, (sum, d) => sum + d.amount);
+  int get totalDonationCount => donations.length;
+
+  // ─── ADMIN: MANAGE CAMPAIGNS
+  void deleteCampaign(int index) {
+    if (!isAdmin || index < 0 || index >= campaigns.length) return;
+    campaigns.removeAt(index);
+    notifyListeners();
+  }
+
+  // ─── ADMIN: MANAGE USERS
+  void deleteUser(int index) {
+    if (!isAdmin || index < 0 || index >= accounts.length) return;
+    final target = accounts[index];
+    // Jangan hapus diri sendiri
+    if (target.email == currentUser?.email) return;
+    // Hapus donasi terkait
+    donations.removeWhere((d) => d.userEmail == target.email);
+    // Hapus campaign terkait
+    campaigns.removeWhere((c) => c.creatorEmail == target.email);
+    accounts.removeAt(index);
+    notifyListeners();
+  }
+
+  void changeUserRole(int index, UserRole newRole) {
+    if (!isAdmin || index < 0 || index >= accounts.length) return;
+    final target = accounts[index];
+    // Jangan ubah diri sendiri
+    if (target.email == currentUser?.email) return;
+    target.role = newRole;
+    notifyListeners();
+  }
 
   // ─── AUTH
   bool login(String email, String password) {

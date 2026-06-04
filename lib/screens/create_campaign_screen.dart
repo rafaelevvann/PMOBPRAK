@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../models/app_state.dart';
 
@@ -26,6 +28,7 @@ class _CreateCampaignScreenState extends State<CreateCampaignScreen> {
 
   // Step 3: Media
   final _imageUrlCtrl = TextEditingController();
+  String? _pickedImagePath;
 
   final List<String> _categories = [
     'Education',
@@ -82,8 +85,8 @@ class _CreateCampaignScreenState extends State<CreateCampaignScreen> {
         }
         return true;
       case 2:
-        if (_imageUrlCtrl.text.trim().isEmpty) {
-          _showError('URL gambar harus diisi');
+        if (_imageUrlCtrl.text.trim().isEmpty && _pickedImagePath == null) {
+          _showError('Pilih gambar dari galeri atau masukkan URL');
           return false;
         }
         return true;
@@ -113,13 +116,15 @@ class _CreateCampaignScreenState extends State<CreateCampaignScreen> {
 
   void _publishCampaign() {
     final state = context.read<AppState>();
+    // Use picked file path or URL
+    final imageSource = _pickedImagePath ?? _imageUrlCtrl.text.trim();
     state.addCampaign(
       title: _titleCtrl.text.trim(),
       category: _selectedCategory,
       description: _descCtrl.text.trim(),
       target: int.parse(_targetCtrl.text.trim()),
       daysLeft: int.parse(_daysCtrl.text.trim()),
-      imageUrl: _imageUrlCtrl.text.trim(),
+      imageUrl: imageSource,
       location: _locationCtrl.text.trim(),
     );
 
@@ -477,17 +482,120 @@ class _CreateCampaignScreenState extends State<CreateCampaignScreen> {
     );
   }
 
+  // ─── PICK IMAGE FROM GALLERY/FILE
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: source,
+      maxWidth: 1200,
+      imageQuality: 85,
+    );
+    if (picked != null) {
+      setState(() {
+        _pickedImagePath = picked.path;
+        _imageUrlCtrl.clear();
+      });
+    }
+  }
+
   // ─── STEP 3: MEDIA
   Widget _buildStep3() {
+    final hasPickedImage = _pickedImagePath != null;
+    final hasUrlImage = _imageUrlCtrl.text.trim().isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ─── OPTION 1: Pick from Gallery/File
+        const Text(
+          'Pilih Gambar',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF374151),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _imagePickerBtn(
+                icon: Icons.photo_library_outlined,
+                label: 'Galeri',
+                onTap: () => _pickImage(ImageSource.gallery),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _imagePickerBtn(
+                icon: Icons.camera_alt_outlined,
+                label: 'Kamera',
+                onTap: () => _pickImage(ImageSource.camera),
+              ),
+            ),
+          ],
+        ),
+        if (hasPickedImage) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFBBF7D0)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Color(0xFF16A34A), size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Gambar dipilih: ${_pickedImagePath!.split('/').last.split('\\').last}',
+                    style: TextStyle(fontSize: 12, color: Colors.green[800]),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => setState(() => _pickedImagePath = null),
+                  child: Icon(Icons.close, size: 16, color: Colors.green[800]),
+                ),
+              ],
+            ),
+          ),
+        ],
+
+        const SizedBox(height: 20),
+
+        // ─── DIVIDER: ATAU
+        Row(
+          children: [
+            Expanded(child: Divider(color: Colors.grey[300])),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'ATAU',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey[400],
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+            Expanded(child: Divider(color: Colors.grey[300])),
+          ],
+        ),
+
+        const SizedBox(height: 20),
+
+        // ─── OPTION 2: URL
         _formField(
           'URL Gambar Kampanye',
           _imageUrlCtrl,
           'https://example.com/image.jpg',
           keyboardType: TextInputType.url,
         ),
+
         const SizedBox(height: 16),
         const Text(
           'Preview Gambar',
@@ -506,23 +614,64 @@ class _CreateCampaignScreenState extends State<CreateCampaignScreen> {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: const Color(0xFFE5E7EB)),
           ),
-          child: _imageUrlCtrl.text.trim().isNotEmpty
+          child: hasPickedImage
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    _imageUrlCtrl.text.trim(),
+                  child: Image.file(
+                    File(_pickedImagePath!),
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => _imagePlaceholder(),
                   ),
                 )
-              : _imagePlaceholder(),
+              : hasUrlImage
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        _imageUrlCtrl.text.trim(),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                      ),
+                    )
+                  : _imagePlaceholder(),
         ),
         const SizedBox(height: 8),
         Text(
-          'Gunakan URL gambar dari Unsplash atau sumber lain',
+          'Pilih gambar dari galeri/kamera atau gunakan URL dari Unsplash',
           style: TextStyle(fontSize: 11.5, color: Colors.grey[400]),
         ),
       ],
+    );
+  }
+
+  Widget _imagePickerBtn({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEF2F2),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: kRed.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: kRed, size: 28),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF374151),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -536,6 +685,22 @@ class _CreateCampaignScreenState extends State<CreateCampaignScreen> {
           Text(
             'Belum ada gambar',
             style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _previewPlaceholder() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.image_outlined, size: 32, color: Colors.grey[300]),
+          const SizedBox(height: 4),
+          Text(
+            'Belum ada gambar',
+            style: TextStyle(fontSize: 11, color: Colors.grey[400]),
           ),
         ],
       ),
@@ -648,40 +813,25 @@ class _CreateCampaignScreenState extends State<CreateCampaignScreen> {
               color: const Color(0xFFF3F4F6),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: _imageUrlCtrl.text.trim().isNotEmpty
+            child: _pickedImagePath != null
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      _imageUrlCtrl.text.trim(),
+                    child: Image.file(
+                      File(_pickedImagePath!),
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.image_outlined,
-                                size: 32, color: Colors.grey[300]),
-                            const SizedBox(height: 4),
-                            Text('Belum ada gambar',
-                                style: TextStyle(
-                                    fontSize: 11, color: Colors.grey[400])),
-                          ],
-                        ),
-                      ),
+                      errorBuilder: (_, __, ___) => _previewPlaceholder(),
                     ),
                   )
-                : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.image_outlined,
-                            size: 32, color: Colors.grey[300]),
-                        const SizedBox(height: 4),
-                        Text('Belum ada gambar',
-                            style: TextStyle(
-                                fontSize: 11, color: Colors.grey[400])),
-                      ],
-                    ),
-                  ),
+                : _imageUrlCtrl.text.trim().isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          _imageUrlCtrl.text.trim(),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _previewPlaceholder(),
+                        ),
+                      )
+                    : _previewPlaceholder(),
           ),
           const SizedBox(height: 12),
 
