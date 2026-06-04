@@ -345,14 +345,15 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             children: [
               const SizedBox(height: 8),
-              _menuItem(
-                Icons.swap_horiz,
-                'Pindah Akun',
-                state.isFundraiser
-                    ? 'Beralih ke mode Donatur'
-                    : 'Beralih ke mode Fundraiser',
-                () => _showSwitchRoleDialog(context, state),
-              ),
+              if (!state.isAdmin)
+                _menuItem(
+                  Icons.swap_horiz,
+                  'Pindah Akun',
+                  state.isFundraiser
+                      ? 'Beralih ke mode Donatur'
+                      : 'Beralih ke mode Fundraiser',
+                  () => _showSwitchRoleDialog(context, state),
+                ),
               if (state.isFundraiser)
                 _menuItem(
                   Icons.campaign_outlined,
