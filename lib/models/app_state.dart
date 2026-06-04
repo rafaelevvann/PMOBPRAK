@@ -65,9 +65,30 @@ class Campaign {
 // ─── APP STATE (Provider)
 class AppState extends ChangeNotifier {
   UserAccount? currentUser;
-  List<UserAccount> accounts = [];
   List<DonationRecord> donations = [];
   int currentTabIndex = 0;
+
+  // ─── HARDCODED ADMIN ACCOUNTS
+  List<UserAccount> accounts = [
+    UserAccount(
+      name: 'Admin 1',
+      email: 'admin1@bantuin.com',
+      password: 'admin123',
+      role: UserRole.admin,
+    ),
+    UserAccount(
+      name: 'Admin 2',
+      email: 'admin2@bantuin.com',
+      password: 'admin123',
+      role: UserRole.admin,
+    ),
+    UserAccount(
+      name: 'Admin 3',
+      email: 'admin3@bantuin.com',
+      password: 'admin123',
+      role: UserRole.admin,
+    ),
+  ];
 
   // ─── NOTIFICATION PREFERENCES
   bool notifDonasi = true;
@@ -93,69 +114,8 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─── CAMPAIGN DATA
-  final List<Campaign> campaigns = [
-    Campaign(
-      title: 'Education for Every Child',
-      category: 'Education',
-      description:
-          'Help us provide quality education, books, and school supplies to children in need.',
-      collected: 45000,
-      target: 75000,
-      donors: 892,
-      daysLeft: 23,
-      imageUrl:
-          'https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=600&q=80',
-    ),
-    Campaign(
-      title: 'Clean Water for Communities',
-      category: 'Water & Sanitation',
-      description:
-          'Build wells and water filtration systems to provide clean, safe drinking water.',
-      collected: 62000,
-      target: 100000,
-      donors: 1245,
-      daysLeft: 15,
-      imageUrl:
-          'https://images.unsplash.com/photo-1541544537156-7627a7a4aa1c?w=600&q=80',
-    ),
-    Campaign(
-      title: 'Healthcare for Remote Areas',
-      category: 'Healthcare',
-      description:
-          'Providing essential medical supplies and checkups to remote communities.',
-      collected: 27000,
-      target: 60000,
-      donors: 638,
-      daysLeft: 31,
-      imageUrl:
-          'https://images.unsplash.com/photo-1504813184591-01572f98c85f?w=600&q=80',
-    ),
-    Campaign(
-      title: 'Food for Families',
-      category: 'Food',
-      description:
-          'Distributing food packages to families affected by extreme poverty and drought.',
-      collected: 18000,
-      target: 40000,
-      donors: 412,
-      daysLeft: 18,
-      imageUrl:
-          'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&q=80',
-    ),
-    Campaign(
-      title: 'Beasiswa Anak Bangsa',
-      category: 'Education',
-      description:
-          'Memberikan beasiswa kepada anak-anak berprestasi dari keluarga kurang mampu.',
-      collected: 33000,
-      target: 50000,
-      donors: 750,
-      daysLeft: 40,
-      imageUrl:
-          'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600&q=80',
-    ),
-  ];
+  // ─── CAMPAIGN DATA (kosong, dibuat oleh fundraiser)
+  final List<Campaign> campaigns = [];
 
   // ─── ROLE HELPERS
   bool get isFundraiser =>
@@ -229,6 +189,8 @@ class AppState extends ChangeNotifier {
 
   bool register(String name, String email, String password,
       {UserRole role = UserRole.donatur}) {
+    // Admin tidak bisa didaftarkan, hanya lewat hardcode
+    if (role == UserRole.admin) return false;
     if (accounts.any((a) => a.email == email)) return false;
     final acc =
         UserAccount(name: name, email: email, password: password, role: role);

@@ -113,11 +113,8 @@ class _AuthModalState extends State<AuthModal> {
       return;
     }
     Navigator.pop(context);
-    final roleLabel = _selectedRole == UserRole.admin
-        ? 'Admin'
-        : _selectedRole == UserRole.fundraiser
-            ? 'Fundraiser'
-            : 'Donatur';
+    final roleLabel =
+        _selectedRole == UserRole.fundraiser ? 'Fundraiser' : 'Donatur';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Selamat datang, $name! 🎉 ($roleLabel)'),
@@ -273,7 +270,7 @@ class _AuthModalState extends State<AuthModal> {
               _roleBtn(
                 icon: Icons.favorite_outline,
                 label: 'Donatur',
-                subtitle: 'Berdonasi',
+                subtitle: 'Berdonasi ke kampanye',
                 isActive: _selectedRole == UserRole.donatur,
                 onTap: () => setState(() => _selectedRole = UserRole.donatur),
               ),
@@ -281,18 +278,10 @@ class _AuthModalState extends State<AuthModal> {
               _roleBtn(
                 icon: Icons.campaign_outlined,
                 label: 'Fundraiser',
-                subtitle: 'Buat kampanye',
+                subtitle: 'Buat kampanye donasi',
                 isActive: _selectedRole == UserRole.fundraiser,
                 onTap: () =>
                     setState(() => _selectedRole = UserRole.fundraiser),
-              ),
-              const SizedBox(width: 4),
-              _roleBtn(
-                icon: Icons.admin_panel_settings_outlined,
-                label: 'Admin',
-                subtitle: 'Kelola sistem',
-                isActive: _selectedRole == UserRole.admin,
-                onTap: () => setState(() => _selectedRole = UserRole.admin),
               ),
             ],
           ),
