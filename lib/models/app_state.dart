@@ -24,12 +24,19 @@ class DonationRecord {
   final int amount;
   final String date;
   final String img;
+  final String paymentMethod;
+  final String message;
+  final bool isAnonymous;
+
   DonationRecord({
     required this.userEmail,
     required this.campaign,
     required this.amount,
     required this.date,
     required this.img,
+    this.paymentMethod = 'QRIS',
+    this.message = '',
+    this.isAnonymous = false,
   });
 }
 
@@ -38,9 +45,9 @@ class Campaign {
   final String title;
   final String category;
   final String description;
-  final int collected;
+  int collected;
   final int target;
-  final int donors;
+  int donors;
   final int daysLeft;
   final String imageUrl;
   final String creatorEmail;
@@ -71,7 +78,7 @@ class AppState extends ChangeNotifier {
   // ─── HARDCODED ADMIN ACCOUNT
   List<UserAccount> accounts = [
     UserAccount(
-      name: 'Admin',
+      name: 'Admin Bantuln',
       email: 'admin123@gmail.com',
       password: 'admin123',
       role: UserRole.admin,
@@ -104,6 +111,25 @@ class AppState extends ChangeNotifier {
 
   // ─── CAMPAIGN DATA
   final List<Campaign> campaigns = [];
+
+  AppState() {
+    campaigns.add(
+      Campaign(
+        title: 'Bantu Anak-anak di RSUD Bantul',
+        category: 'Kesehatan',
+        description:
+            'Dukung pengobatan dan kebutuhan harian anak-anak yang sedang dirawat di rumah sakit serta keluarga mereka.',
+        collected: 12500000,
+        target: 25000000,
+        donors: 184,
+        daysLeft: 18,
+        imageUrl:
+            'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80',
+        creatorEmail: 'yayasan.bantuln@gmail.com',
+        location: 'Bantul',
+      ),
+    );
+  }
 
   // ─── ROLE HELPERS
   bool get isFundraiser =>
@@ -212,6 +238,9 @@ class AppState extends ChangeNotifier {
           amount: d.amount,
           date: d.date,
           img: d.img,
+          paymentMethod: d.paymentMethod,
+          message: d.message,
+          isAnonymous: d.isAnonymous,
         );
       }
     }
@@ -231,7 +260,14 @@ class AppState extends ChangeNotifier {
   }
 
   // ─── DONATIONS
-  void addDonation(String campaign, int amount, String img) {
+  void addDonation(
+    String campaign,
+    int amount,
+    String img, {
+    String paymentMethod = 'QRIS',
+    String message = '',
+    bool isAnonymous = false,
+  }) {
     if (currentUser == null) return;
     final now = DateTime.now();
     final date =
@@ -244,8 +280,19 @@ class AppState extends ChangeNotifier {
         amount: amount,
         date: date,
         img: img,
+        paymentMethod: paymentMethod,
+        message: message,
+        isAnonymous: isAnonymous,
       ),
     );
+
+    // Update campaign stats
+    final campIndex = campaigns.indexWhere((c) => c.title == campaign);
+    if (campIndex != -1) {
+      campaigns[campIndex].collected += amount;
+      campaigns[campIndex].donors += 1;
+    }
+
     notifyListeners();
   }
 

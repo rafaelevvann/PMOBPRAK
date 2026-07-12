@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/app_state.dart';
+import '../screens/donation_flow_screen.dart';
 import 'auth_modal.dart';
 
 const kRed = Color(0xFFE8003D);
@@ -11,13 +12,11 @@ void showDonateModal(BuildContext context, Campaign campaign) {
     showAuthModal(context);
     return;
   }
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => DonationFlowScreen(campaign: campaign),
     ),
-    builder: (_) => DonateModal(campaign: campaign),
   );
 }
 

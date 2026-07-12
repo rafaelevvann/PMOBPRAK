@@ -9,8 +9,10 @@ import 'screens/my_campaigns_screen.dart';
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/admin_users_screen.dart';
 import 'screens/admin_campaigns_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(
     ChangeNotifierProvider(
       create: (_) => AppState(),
@@ -32,7 +34,11 @@ class BantuInApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFE8003D)),
         useMaterial3: true,
       ),
-      home: const MainShell(),
+      initialRoute: '/splash',
+      routes: {
+        '/splash': (context) => const SplashScreen(),
+        '/home': (context) => const MainShell(),
+      },
     );
   }
 }
